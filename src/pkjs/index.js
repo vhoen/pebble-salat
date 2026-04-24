@@ -164,14 +164,36 @@ function mergeConfig(incoming) {
     };
 }
 
-Pebble.addEventListener("ready", function () {
-    const config = mergeConfig(readCache());
-    sendPrayerPayload(config);
-    fetchAndSendPrayerTimes(config);
-});
+if (typeof Pebble !== "undefined" && Pebble && typeof Pebble.addEventListener === "function") {
+    Pebble.addEventListener("ready", function () {
+        const config = mergeConfig(readCache());
+        sendPrayerPayload(config);
+        fetchAndSendPrayerTimes(config);
+    });
 
-Pebble.addEventListener("appmessage", function (e) {
-    const incoming = (e && e.payload) || {};
-    const config = mergeConfig(incoming);
-    fetchAndSendPrayerTimes(config);
-});
+    Pebble.addEventListener("appmessage", function (e) {
+        const incoming = (e && e.payload) || {};
+        const config = mergeConfig(incoming);
+        fetchAndSendPrayerTimes(config);
+    });
+}
+
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+        CACHE_KEY,
+        PRAYER_KEYS,
+        KEYS,
+        defaultConfig,
+        formatDateForApi,
+        formatDateTag,
+        normalizeTime,
+        extractPrayerTimes,
+        readCache,
+        writeCache,
+        sendPrayerPayload,
+        shouldUseCache,
+        requestPrayerTimes,
+        fetchAndSendPrayerTimes,
+        mergeConfig,
+    };
+}

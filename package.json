@@ -4,7 +4,15 @@
   "version": "1.0.0",
   "keywords": ["pebble-app"],
   "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:unit": "jest --testPathPattern=unit",
+    "test:e2e": "jest --testPathPattern=e2e"
+  },
   "dependencies": {},
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
   "pebble": {
     "displayName": "pebble-salat",
     "uuid": "3d23b885-606e-4c3c-84db-7afc722288c2",
