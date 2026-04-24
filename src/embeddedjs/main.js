@@ -1,4 +1,5 @@
 import Poco from "commodetto/Poco";
+import Message from "pebble/message";
 
 const render = new Poco(screen);
 
@@ -10,15 +11,24 @@ const prayerAccentColor = render.makeColor(193, 138, 66);
 const state = {
 	city: "Paris",
 	countryCode: "FR",
+	times: {
+		fajr: "00:00",
+		dhuhr: "00:00",
+		asr: "00:00",
+		maghrib: "00:00",
+		isha: "00:00",
+	},
 };
 
-const prayerRows = [
-	"Fajr : 00:00",
-	"Dhuhr : 00:00",
-	"Asr : 00:00",
-	"Maghrib : 00:00",
-	"Isha : 00:00",
-];
+const APP_KEYS = new Map([
+	["city", 10000],
+	["countryCode", 10001],
+	["fajr", 10002],
+	["dhuhr", 10003],
+	["asr", 10004],
+	["maghrib", 10005],
+	["isha", 10006],
+]);
 
 const GLYPHS = {
 	" ": [0, 0, 0, 0, 0, 0, 0],
@@ -96,6 +106,14 @@ function draw() {
 	const cityLabel = `${state.city} (${state.countryCode})`;
 	drawBitmapText(cityLabel, 14, 12, backgroundColor);
 
+	const prayerRows = [
+		`Fajr : ${state.times.fajr}`,
+		`Dhuhr : ${state.times.dhuhr}`,
+		`Asr : ${state.times.asr}`,
+		`Maghrib : ${state.times.maghrib}`,
+		`Isha : ${state.times.isha}`,
+	];
+
 	let y = 54;
 	for (const row of prayerRows) {
 		drawBitmapText(row, 18, y, prayerLineColor);
@@ -105,5 +123,40 @@ function draw() {
 	render.end();
 }
 
+function readValue(payload, key) {
+	let value = null;
+
+	if (payload && typeof payload.get === "function") {
+		value = payload.get(key);
+	}
+	else if (payload && Object.prototype.hasOwnProperty.call(payload, key)) {
+		value = payload[key];
+	}
+
+	return typeof value === "string" && value ? value : null;
+}
+
+const message = new Message({
+	format: "map",
+	keys: APP_KEYS,
+	onReadable() {
+		const payload = message.read();
+		if (!payload)
+			return;
+
+		state.city = readValue(payload, "city") || state.city;
+		state.countryCode = readValue(payload, "countryCode") || state.countryCode;
+		state.times.fajr = readValue(payload, "fajr") || state.times.fajr;
+		state.times.dhuhr = readValue(payload, "dhuhr") || state.times.dhuhr;
+		state.times.asr = readValue(payload, "asr") || state.times.asr;
+		state.times.maghrib = readValue(payload, "maghrib") || state.times.maghrib;
+		state.times.isha = readValue(payload, "isha") || state.times.isha;
+
+		draw();
+	},
+});
+
+void message;
+
 draw();
-watch.addEventListener("secondchange", draw);
+watch.addEventListener("minutechange", draw);

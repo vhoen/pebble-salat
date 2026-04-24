@@ -19,7 +19,13 @@
       "watchface": true
     },
     "messageKeys": [
-      "dummy"
+      "city",
+      "countryCode",
+      "fajr",
+      "dhuhr",
+      "asr",
+      "maghrib",
+      "isha"
     ],
     "resources": {
       "media": []

@@ -1,0 +1,9 @@
+{
+  "city": 10000,
+  "countryCode": 10001,
+  "fajr": 10002,
+  "dhuhr": 10003,
+  "asr": 10004,
+  "maghrib": 10005,
+  "isha": 10006
+}
