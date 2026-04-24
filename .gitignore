@@ -1,0 +1,21 @@
+# Pebble SDK build artifacts
+build/
+*.pbw
+.lock-waf_*
+
+# Pebble generated source/header files
+src/message_keys.auto.c
+src/message_keys.auto.h
+include/message_keys.auto.h
+
+# JavaScript dependencies and logs
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
