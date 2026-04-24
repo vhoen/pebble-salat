@@ -6,6 +6,7 @@ const render = new Poco(screen);
 const backgroundColor = render.makeColor(255, 248, 232);
 const titleBarColor = render.makeColor(24, 34, 48);
 const prayerLineColor = render.makeColor(45, 60, 72);
+const prayerPastColor = render.makeColor(124, 141, 156);
 const prayerAccentColor = render.makeColor(193, 138, 66);
 
 const state = {
@@ -96,6 +97,47 @@ function drawBitmapText(text, x, y, color) {
 	}
 }
 
+function parseMinutes(timeValue) {
+	if (typeof timeValue !== "string")
+		return null;
+
+	const match = timeValue.match(/^(\d{1,2}):(\d{2})/);
+	if (!match)
+		return null;
+
+	const hour = Number(match[1]);
+	const minute = Number(match[2]);
+	if (Number.isNaN(hour) || Number.isNaN(minute) || hour < 0 || hour > 23 || minute < 0 || minute > 59)
+		return null;
+
+	return hour * 60 + minute;
+}
+
+function getPrayerStatuses() {
+	const now = new Date();
+	const currentMinutes = now.getHours() * 60 + now.getMinutes();
+	const schedule = [
+		state.times.fajr,
+		state.times.dhuhr,
+		state.times.asr,
+		state.times.maghrib,
+		state.times.isha,
+	].map(parseMinutes);
+
+	let nextPrayerIndex = -1;
+	for (let i = 0; i < schedule.length; i++) {
+		if (schedule[i] !== null && schedule[i] > currentMinutes) {
+			nextPrayerIndex = i;
+			break;
+		}
+	}
+
+	return schedule.map((minutes, index) => ({
+		isPast: minutes !== null && minutes <= currentMinutes,
+		isNext: index === nextPrayerIndex,
+	}));
+}
+
 function draw() {
 	render.begin();
 	render.fillRectangle(backgroundColor, 0, 0, render.width, render.height);
@@ -113,10 +155,18 @@ function draw() {
 		`Maghrib : ${state.times.maghrib}`,
 		`Isha : ${state.times.isha}`,
 	];
+	const prayerStatuses = getPrayerStatuses();
 
 	let y = 54;
-	for (const row of prayerRows) {
-		drawBitmapText(row, 18, y, prayerLineColor);
+	for (let i = 0; i < prayerRows.length; i++) {
+		const row = prayerRows[i];
+		const status = prayerStatuses[i];
+		const color = status.isPast ? prayerPastColor : prayerLineColor;
+
+		drawBitmapText(row, 18, y, color);
+		if (status.isNext)
+			drawBitmapText(row, 19, y, color);
+
 		y += 28;
 	}
 
