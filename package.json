@@ -2,14 +2,18 @@
   "name": "pebble-salat",
   "author": "MakeAwesomeHappen",
   "version": "1.0.0",
-  "keywords": ["pebble-app"],
+  "keywords": [
+    "pebble-app"
+  ],
   "private": true,
   "scripts": {
     "test": "jest",
     "test:unit": "jest --testPathPattern=unit",
     "test:e2e": "jest --testPathPattern=e2e"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@rebble/clay": "^1.0.10"
+  },
   "devDependencies": {
     "jest": "^29.7.0"
   },
@@ -22,6 +26,9 @@
     "targetPlatforms": [
       "emery",
       "gabbro"
+    ],
+    "capabilities": [
+      "configurable"
     ],
     "watchapp": {
       "watchface": true

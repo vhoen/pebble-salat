@@ -57,4 +57,56 @@ describe("pkjs unit", () => {
     expect(pkjs.mergeConfig(null)).toEqual({ city: "Paris", countryCode: "FR" });
     expect(pkjs.mergeConfig({ city: "Lille" })).toEqual({ city: "Lille", countryCode: "FR" });
   });
+
+  test("mergeConfig lit les reglages Clay persistes", () => {
+    global.localStorage = {
+      getItem: jest.fn((key) =>
+        key === pkjs.CLAY_SETTINGS_KEY
+          ? JSON.stringify({ city: "Lyon", countryCode: "FR" })
+          : null
+      ),
+      setItem: jest.fn(),
+    };
+
+    expect(pkjs.mergeConfig(null)).toEqual({ city: "Lyon", countryCode: "FR" });
+    delete global.localStorage;
+  });
+
+  test("fetchAndSendPrayerTimes forceRefresh ignore le cache", () => {
+    const config = { city: "Paris", countryCode: "FR" };
+    const cache = {
+      date: "2026-04-24",
+      city: "Paris",
+      countryCode: "FR",
+      fajr: "05:00",
+      dhuhr: "13:00",
+      asr: "17:00",
+      maghrib: "20:00",
+      isha: "22:00",
+    };
+
+    expect(pkjs.shouldUseCache(cache, config, "2026-04-24")).toBe(true);
+
+    const storage = {};
+    global.localStorage = {
+      getItem: jest.fn((key) => (storage[key] ? storage[key] : null)),
+      setItem: jest.fn((key, value) => {
+        storage[key] = String(value);
+      }),
+    };
+    storage[pkjs.CACHE_KEY] = JSON.stringify(cache);
+
+    let openedUrl = null;
+    global.XMLHttpRequest = jest.fn(function () {
+      this.open = jest.fn((method, url) => {
+        openedUrl = url;
+      });
+      this.send = jest.fn();
+    });
+
+    pkjs.fetchAndSendPrayerTimes(config, { forceRefresh: true });
+    expect(openedUrl).toContain("timingsByCity");
+    delete global.localStorage;
+    delete global.XMLHttpRequest;
+  });
 });

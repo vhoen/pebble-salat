@@ -1,3 +1,6 @@
+const Clay = require("@rebble/clay");
+const clayConfig = require("./config");
+
 const defaultConfig = {
     city: "Paris",
     countryCode: "FR",
@@ -9,7 +12,9 @@ const defaultConfig = {
 };
 
 const CACHE_KEY = "prayer-times-cache";
+const CLAY_SETTINGS_KEY = "clay-settings";
 const PRAYER_KEYS = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
+const DAILY_FETCH_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const KEYS = {
     city: 10000,
     countryCode: 10001,
@@ -57,6 +62,14 @@ function extractPrayerTimes(timings) {
 function readCache() {
     try {
         return JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+    } catch (_error) {
+        return null;
+    }
+}
+
+function readClaySettings() {
+    try {
+        return JSON.parse(localStorage.getItem(CLAY_SETTINGS_KEY) || "null");
     } catch (_error) {
         return null;
     }
@@ -110,12 +123,13 @@ function requestPrayerTimes(url, onSuccess, onError) {
     xhr.send();
 }
 
-function fetchAndSendPrayerTimes(config) {
+function fetchAndSendPrayerTimes(config, options) {
+    const opts = options || {};
     const now = new Date();
     const dateTag = formatDateTag(now);
     const cached = readCache();
 
-    if (shouldUseCache(cached, config, dateTag)) {
+    if (!opts.forceRefresh && shouldUseCache(cached, config, dateTag)) {
         sendPrayerPayload(cached);
         return;
     }
@@ -149,38 +163,89 @@ function fetchAndSendPrayerTimes(config) {
         },
         function (error) {
             console.log("Failed to fetch prayer times", String(error));
+            if (cached && cached.city === config.city && cached.countryCode === config.countryCode) {
+                sendPrayerPayload(cached);
+                return;
+            }
             sendPrayerPayload(config);
         }
     );
 }
 
 function mergeConfig(incoming) {
+    const claySettings = readClaySettings() || {};
+    const source = incoming || claySettings || {};
     return {
-        city: incoming && incoming.city ? String(incoming.city) : defaultConfig.city,
-        countryCode:
-            incoming && incoming.countryCode
-                ? String(incoming.countryCode)
-                : defaultConfig.countryCode,
+        city: source.city ? String(source.city) : defaultConfig.city,
+        countryCode: source.countryCode ? String(source.countryCode) : defaultConfig.countryCode,
     };
 }
 
+function getImmediatePayload(config) {
+    const cached = readCache();
+    if (
+        cached &&
+        cached.city === config.city &&
+        cached.countryCode === config.countryCode &&
+        PRAYER_KEYS.every((key) => typeof cached[key] === "string")
+    ) {
+        return cached;
+    }
+
+    return config;
+}
+
+function scheduleDailyPrayerFetch(config) {
+    const timer = setInterval(function () {
+        fetchAndSendPrayerTimes(config);
+    }, DAILY_FETCH_INTERVAL_MS);
+
+    if (timer && typeof timer.unref === "function") {
+        timer.unref();
+    }
+}
+
+function handleSettingsSaved(response, clay) {
+    if (!response || response === "CANCELLED" || response === "EXIT") {
+        return;
+    }
+
+    try {
+        const settings = clay.getSettings(response);
+        const config = mergeConfig(settings);
+        fetchAndSendPrayerTimes(config, { forceRefresh: true });
+    } catch (error) {
+        console.log("Failed to apply saved settings", String(error));
+    }
+}
+
+let clay;
+
 if (typeof Pebble !== "undefined" && Pebble && typeof Pebble.addEventListener === "function") {
+    clay = new Clay(clayConfig);
+
     Pebble.addEventListener("ready", function () {
         const config = mergeConfig(readCache());
-        sendPrayerPayload(config);
-        fetchAndSendPrayerTimes(config);
+        sendPrayerPayload(getImmediatePayload(config));
+        fetchAndSendPrayerTimes(config, { forceRefresh: true });
+        scheduleDailyPrayerFetch(config);
     });
 
     Pebble.addEventListener("appmessage", function (e) {
         const incoming = (e && e.payload) || {};
         const config = mergeConfig(incoming);
-        fetchAndSendPrayerTimes(config);
+        fetchAndSendPrayerTimes(config, { forceRefresh: true });
+    });
+
+    Pebble.addEventListener("webviewclosed", function (e) {
+        handleSettingsSaved(e && e.response, clay);
     });
 }
 
 if (typeof module !== "undefined" && module.exports) {
     module.exports = {
         CACHE_KEY,
+        CLAY_SETTINGS_KEY,
         PRAYER_KEYS,
         KEYS,
         defaultConfig,
@@ -189,11 +254,14 @@ if (typeof module !== "undefined" && module.exports) {
         normalizeTime,
         extractPrayerTimes,
         readCache,
+        readClaySettings,
         writeCache,
         sendPrayerPayload,
         shouldUseCache,
         requestPrayerTimes,
         fetchAndSendPrayerTimes,
         mergeConfig,
+        getImmediatePayload,
+        handleSettingsSaved,
     };
 }

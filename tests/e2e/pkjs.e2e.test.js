@@ -100,7 +100,7 @@ describe("pkjs e2e", () => {
 
     const firstPayload = global.Pebble.sendAppMessage.mock.calls[0][0];
     expect(firstPayload[10000]).toBe("Paris");
-    expect(firstPayload[10002]).toBe("00:00");
+    expect(firstPayload[10002]).toBe("05:00");
 
     const secondPayload = global.Pebble.sendAppMessage.mock.calls[1][0];
     expect(secondPayload[10002]).toBe("05:05");
@@ -132,5 +132,44 @@ describe("pkjs e2e", () => {
     expect(payload[10000]).toBe("Lille");
     expect(payload[10001]).toBe("FR");
     expect(payload[10002]).toBe("00:00");
+  });
+
+  test("ready: refetch meme si le cache du jour est valide", () => {
+    mockDate("2026-04-24T10:30:00.000Z");
+    const { storage, events } = setupGlobals();
+    storage["prayer-times-cache"] = JSON.stringify({
+      date: "2026-04-24",
+      city: "Paris",
+      countryCode: "FR",
+      fajr: "05:00",
+      dhuhr: "13:00",
+      asr: "17:00",
+      maghrib: "20:00",
+      isha: "22:00",
+    });
+
+    function FakeXHR() {}
+    FakeXHR.prototype.open = jest.fn();
+    FakeXHR.prototype.send = jest.fn(function () {
+      this.responseText = JSON.stringify({
+        data: {
+          timings: {
+            Fajr: "05:11",
+            Dhuhr: "13:11",
+            Asr: "17:11",
+            Maghrib: "20:11",
+            Isha: "22:11",
+          },
+        },
+      });
+      this.onload();
+    });
+    global.XMLHttpRequest = FakeXHR;
+
+    require("../../src/pkjs/index.js");
+    events.ready();
+
+    expect(global.Pebble.sendAppMessage).toHaveBeenCalledTimes(2);
+    expect(global.Pebble.sendAppMessage.mock.calls[1][0][10002]).toBe("05:11");
   });
 });

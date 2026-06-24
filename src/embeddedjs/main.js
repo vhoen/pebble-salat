@@ -13,11 +13,11 @@ const state = {
 	city: "Paris",
 	countryCode: "FR",
 	times: {
-		fajr: "00:00",
-		dhuhr: "00:00",
-		asr: "00:00",
-		maghrib: "00:00",
-		isha: "00:00",
+		fajr: "--:--",
+		dhuhr: "--:--",
+		asr: "--:--",
+		maghrib: "--:--",
+		isha: "--:--",
 	},
 };
 
