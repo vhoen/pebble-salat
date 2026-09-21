@@ -1,0 +1,11 @@
+{
+  "latitude": 10000,
+  "longitude": 10001,
+  "fajr": 10002,
+  "dhuhr": 10003,
+  "asr": 10004,
+  "maghrib": 10005,
+  "isha": 10006,
+  "requestFetch": 10007,
+  "fetching": 10008
+}

@@ -1,0 +1,57 @@
+{
+  "name": "pebble-salat",
+  "author": "vhoen",
+  "version": "1.0.0",
+  "keywords": [
+    "pebble-app"
+  ],
+  "private": false,
+  "scripts": {
+    "test": "jest",
+    "test:unit": "jest --testPathPattern=unit"
+  },
+  "dependencies": {
+    "@rebble/clay": "^1.0.10"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "pebble": {
+    "displayName": "salat",
+    "uuid": "a7c4e2f1-9b3d-4e8a-b1c6-5d0f8a2e4b79",
+    "projectType": "moddable",
+    "sdkVersion": "3",
+    "enableMultiJS": true,
+    "targetPlatforms": [
+      "emery",
+      "gabbro"
+    ],
+    "capabilities": [
+      "configurable"
+    ],
+    "watchapp": {
+      "watchface": false
+    },
+    "messageKeys": [
+      "latitude",
+      "longitude",
+      "fajr",
+      "dhuhr",
+      "asr",
+      "maghrib",
+      "isha",
+      "requestFetch",
+      "fetching"
+    ],
+    "resources": {
+      "media": [
+        {
+          "type": "bitmap",
+          "name": "MENU_ICON",
+          "file": "images/menu_icon.png",
+          "menuIcon": true
+        }
+      ]
+    }
+  }
+}
