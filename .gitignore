@@ -2,6 +2,7 @@
 build/
 *.pbw
 .lock-waf_*
+.wafpickle*
 
 # Pebble generated source/header files
 src/message_keys.auto.c
@@ -14,11 +15,25 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.log
 
-# OS/editor noise
+# Local secrets / env
+.env
+.env.*
+!.env.example
+
+# Test / coverage (local)
+coverage/
+.nyc_output/
+
+# OS / editor noise
 .DS_Store
 Thumbs.db
+*.swp
+*~
 .vscode/
+.idea/
+*.iml
 
 # dev-workflow-mcp (non commite)
 .coverage/
