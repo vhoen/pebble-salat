@@ -27,8 +27,12 @@ const KEYS = {
     fetching: 10008,
 };
 
+// Aladhan timings path expects DD-MM-YYYY (ISO YYYY-MM-DD is misparsed).
 function formatDateForApi(date) {
-    return formatDateTag(date);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
 }
 
 function formatDateTag(date) {

@@ -39,10 +39,10 @@ Default Clay coordinates point at Paris (`48.86…`, `2.33…`). Adjust as neede
 ## API
 
 ```
-GET https://api.aladhan.com/v1/timings/{YYYY-MM-DD}?latitude={lat}&longitude={lon}
+GET https://api.aladhan.com/v1/timings/{DD-MM-YYYY}?latitude={lat}&longitude={lon}
 ```
 
-Date is the device's current local calendar day. Only the five main prayer fields from `data.timings` are used.
+Date is the device's current local calendar day in `DD-MM-YYYY` (Aladhan path format; ISO `YYYY-MM-DD` is misparsed by the API). Only the five main prayer fields from `data.timings` are used.
 
 ## Project layout
 
@@ -64,6 +64,23 @@ npm test
 ```
 
 Unit tests cover the PKJS layer (URL builder, cache, parsing, AppMessage helpers).
+
+## Publish to Rebble
+
+There is no public RePebble upload API. The helper script bumps the version, runs tests, builds the `.pbw`, copies its path to the clipboard when possible, and opens the [developer dashboard](https://developer.repebble.com/dashboard). You still attach the binary manually after signing in.
+
+```bash
+npm run publish:rebble -- --bump patch --notes "Fix Aladhan DD-MM-YYYY date format"
+```
+
+Useful flags:
+
+- `--no-bump` — keep the current `package.json` version
+- `--bump minor` / `--bump major` — alternate semver bumps (default `patch`)
+- `--skip-tests` — skip `npm test`
+- `--no-open` — do not open the browser
+
+Requires the `pebble` CLI on `PATH`. The built file is `build/pebble-salat.pbw`.
 
 ## Metadata
 

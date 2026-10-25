@@ -52,12 +52,12 @@ describe("pkjs unit", () => {
     delete global.XMLHttpRequest;
   });
 
-  test("formatDateForApi returns YYYY-MM-DD", () => {
+  test("formatDateForApi returns DD-MM-YYYY for Aladhan", () => {
     const value = pkjs.formatDateForApi(new Date("2026-04-24T10:11:00Z"));
-    expect(value).toBe("2026-04-24");
+    expect(value).toBe("24-04-2026");
   });
 
-  test("formatDateTag returns YYYY-MM-DD", () => {
+  test("formatDateTag returns YYYY-MM-DD for cache keys", () => {
     const value = pkjs.formatDateTag(new Date("2026-04-24T10:11:00Z"));
     expect(value).toBe("2026-04-24");
   });
@@ -190,14 +190,14 @@ describe("pkjs unit", () => {
     expect(JSON.parse(storage[pkjs.CACHE_KEY])).toEqual({ latitude: DEFAULT_LAT });
   });
 
-  test("buildPrayerTimesUrl uses latitude and longitude", () => {
+  test("buildPrayerTimesUrl uses DD-MM-YYYY date with latitude and longitude", () => {
     const url = pkjs.buildPrayerTimesUrl(
       { latitude: DEFAULT_LAT, longitude: DEFAULT_LON },
       new Date("2026-09-21T10:11:00Z")
     );
 
     expect(url).toBe(
-      `https://api.aladhan.com/v1/timings/2026-09-21?latitude=${DEFAULT_LAT}&longitude=${DEFAULT_LON}`
+      `https://api.aladhan.com/v1/timings/21-09-2026?latitude=${DEFAULT_LAT}&longitude=${DEFAULT_LON}`
     );
   });
 
